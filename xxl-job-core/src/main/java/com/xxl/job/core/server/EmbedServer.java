@@ -69,11 +69,14 @@ public class EmbedServer {
                                 public void initChannel(SocketChannel channel) throws Exception {
                                     channel.pipeline()
                                             .addLast(new IdleStateHandler(0, 0, 30 * 3, TimeUnit.SECONDS))  // beat 3N, close if idle
+                                            // 用于解码 http 请求和编码 http 响应
                                             .addLast(new HttpServerCodec())
                                             .addLast(new HttpObjectAggregator(5 * 1024 * 1024))  // merge request & reponse to FULL
+                                            // 处理业务逻辑
                                             .addLast(new EmbedHttpServerHandler(executorBiz, accessToken, bizThreadPool));
                                 }
                             })
+                            // 保持长连接
                             .childOption(ChannelOption.SO_KEEPALIVE, true);
 
                     // bind
@@ -82,6 +85,7 @@ public class EmbedServer {
                     logger.info(">>>>>>>>>>> xxl-job remoting server start success, nettype = {}, port = {}", EmbedServer.class, port);
 
                     // start registry
+                    // 开始注册
                     startRegistry(appname, address);
 
                     // wait util stop
@@ -144,6 +148,7 @@ public class EmbedServer {
         protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
             // request parse
             //final byte[] requestBytes = ByteBufUtil.getBytes(msg.content());    // byteBuf.toString(io.netty.util.CharsetUtil.UTF_8);
+            // 获取调度中心发送过来的请求
             String requestData = msg.content().toString(CharsetUtil.UTF_8);
             String uri = msg.uri();
             HttpMethod httpMethod = msg.method();
@@ -151,16 +156,20 @@ public class EmbedServer {
             String accessTokenReq = msg.headers().get(XxlJobRemotingUtil.XXL_JOB_ACCESS_TOKEN);
 
             // invoke
+            // 异步处理请求，防止阻塞IO
             bizThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     // do invoke
+                    // 处理请求
                     Object responseObj = process(httpMethod, uri, requestData, accessTokenReq);
 
                     // to json
+                    // 响应结果转换为 json 字符串
                     String responseJson = GsonTool.toJson(responseObj);
 
                     // write response
+                    // 返回响应结果给调度中心
                     writeResponse(ctx, keepAlive, responseJson);
                 }
             });

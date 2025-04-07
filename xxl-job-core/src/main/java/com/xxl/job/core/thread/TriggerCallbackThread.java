@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+// 回调线程
 /**
  * Created by xuxueli on 16/7/22.
  */
@@ -63,11 +64,13 @@ public class TriggerCallbackThread {
                 // normal callback
                 while(!toStop){
                     try {
+                        // 从回调队列中取出一个任务结果对象，获取不到会进行阻塞
                         HandleCallbackParam callback = getInstance().callBackQueue.take();
                         if (callback != null) {
 
                             // callback list param
                             List<HandleCallbackParam> callbackParamList = new ArrayList<HandleCallbackParam>();
+                            // 从队列中移除所有元素到指定集合中，返回成功移除的元素数量
                             int drainToNum = getInstance().callBackQueue.drainTo(callbackParamList);
                             callbackParamList.add(callback);
 
@@ -84,10 +87,12 @@ public class TriggerCallbackThread {
                 }
 
                 // last callback
+                // 线程停止后的处理逻辑
                 try {
                     List<HandleCallbackParam> callbackParamList = new ArrayList<HandleCallbackParam>();
                     int drainToNum = getInstance().callBackQueue.drainTo(callbackParamList);
                     if (callbackParamList!=null && callbackParamList.size()>0) {
+                        // 执行回调
                         doCallback(callbackParamList);
                     }
                 } catch (Throwable e) {
@@ -110,6 +115,7 @@ public class TriggerCallbackThread {
             public void run() {
                 while(!toStop){
                     try {
+                        // 重试失败的回调文件
                         retryFailCallbackFile();
                     } catch (Throwable e) {
                         if (!toStop) {

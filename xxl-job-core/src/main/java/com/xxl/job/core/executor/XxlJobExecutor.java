@@ -29,14 +29,19 @@ public class XxlJobExecutor  {
     private static final Logger logger = LoggerFactory.getLogger(XxlJobExecutor.class);
 
     // ---------------------- param ----------------------
+    // 调度中心部署根地址
     private String adminAddresses;
+    // 调度中心通讯 token
     private String accessToken;
+    // 调度中心通讯超时时间
     private int timeout;
     private String appname;
     private String address;
     private String ip;
     private int port;
+    // 日志文件存储磁盘路径
     private String logPath;
+    // 日志文件保存天数
     private int logRetentionDays;
 
     public void setAdminAddresses(String adminAddresses) {
@@ -72,19 +77,24 @@ public class XxlJobExecutor  {
     public void start() throws Exception {
 
         // init logpath
+        // 初始化日志路径
         XxlJobFileAppender.initLogPath(logPath);
 
         // init invoker, admin-client
+        // 初始化与调度中心通信的客户端列表
         initAdminBizList(adminAddresses, accessToken, timeout);
 
 
         // init JobLogFileCleanThread
+        // 启动日志文件清理线程，清理过期的文件
         JobLogFileCleanThread.getInstance().start(logRetentionDays);
 
         // init TriggerCallbackThread
+        // 启动回调线程
         TriggerCallbackThread.getInstance().start();
 
         // init executor-server
+        // 初始化并启动嵌入式服务器，与调度中心通信
         initEmbedServer(address, ip, port, appname, accessToken);
     }
 
@@ -111,9 +121,11 @@ public class XxlJobExecutor  {
 
 
         // destroy JobLogFileCleanThread
+        // 销毁日志文件清理线程
         JobLogFileCleanThread.getInstance().toStop();
 
         // destroy TriggerCallbackThread
+        // 销毁回调线程
         TriggerCallbackThread.getInstance().toStop();
 
     }
@@ -163,6 +175,7 @@ public class XxlJobExecutor  {
 
         // start
         embedServer = new EmbedServer();
+        // 启动嵌入式服务器
         embedServer.start(address, port, appname, accessToken);
     }
 

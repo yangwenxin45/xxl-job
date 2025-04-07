@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 
+// 任务线程
 /**
  * handler thread
  * @author xuxueli 2016-1-16 19:52:47
@@ -29,6 +30,7 @@ public class JobThread extends Thread{
 
 	private int jobId;
 	private IJobHandler handler;
+	// 无界阻塞队列
 	private LinkedBlockingQueue<TriggerParam> triggerQueue;
 	private Set<Long> triggerLogIdSet;		// avoid repeat trigger for the same TRIGGER_LOG_ID
 
@@ -111,6 +113,7 @@ public class JobThread extends Thread{
             TriggerParam triggerParam = null;
             try {
 				// to check toStop signal, we need cycle, so wo cannot use queue.take(), instand of poll(timeout)
+				// 出队，等待时间最多为 3 秒
 				triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
 				if (triggerParam!=null) {
 					running = true;
@@ -127,6 +130,7 @@ public class JobThread extends Thread{
 							triggerParam.getBroadcastTotal());
 
 					// init job context
+					// 初始化任务上下文
 					XxlJobContext.setXxlJobContext(xxlJobContext);
 
 					// execute
@@ -134,6 +138,7 @@ public class JobThread extends Thread{
 
 					if (triggerParam.getExecutorTimeout() > 0) {
 						// limit timeout
+						// 如果有超时时间，需要进行超时中断处理
 						Thread futureThread = null;
 						try {
 							FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new Callable<Boolean>() {
@@ -167,6 +172,7 @@ public class JobThread extends Thread{
 					}
 
 					// valid execute handle data
+					// 校验执行结果
 					if (XxlJobContext.getXxlJobContext().getHandleCode() <= 0) {
 						XxlJobHelper.handleFail("job handle result lost.");
 					} else {
@@ -204,7 +210,8 @@ public class JobThread extends Thread{
 				XxlJobHelper.log("<br>----------- JobThread Exception:" + errorMsg + "<br>----------- xxl-job job execute end(error) -----------");
 			} finally {
                 if(triggerParam != null) {
-                    // callback handler info
+					// callback handler info
+					// 回调响应信息
                     if (!toStop) {
                         // commonm
                         TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
@@ -227,6 +234,7 @@ public class JobThread extends Thread{
         }
 
 		// callback trigger request in queue
+		// 线程终止后，处理队列中未处理数据
 		while(triggerQueue !=null && triggerQueue.size()>0){
 			TriggerParam triggerParam = triggerQueue.poll();
 			if (triggerParam!=null) {

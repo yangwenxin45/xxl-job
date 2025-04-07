@@ -28,6 +28,13 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
 
 
     // start
+
+    /**
+     * SmartInitializingSingleton 是在 Spring 容器中所有单例 Bean 初始化完成之后调用
+     *
+     * @author yangwenxin
+     * @date 2025-04-01 12:07
+     */
     @Override
     public void afterSingletonsInstantiated() {
 

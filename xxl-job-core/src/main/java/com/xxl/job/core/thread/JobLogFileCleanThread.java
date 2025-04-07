@@ -113,8 +113,10 @@ public class JobLogFileCleanThread {
         }
 
         // interrupt and wait
+        // 终端本线程
         localThread.interrupt();
         try {
+            // 主线程等待子线程结束
             localThread.join();
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
