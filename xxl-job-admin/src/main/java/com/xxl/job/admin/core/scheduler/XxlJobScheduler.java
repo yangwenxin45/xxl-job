@@ -22,30 +22,37 @@ public class XxlJobScheduler  {
 
     public void init() throws Exception {
         // init i18n
+        // 初始化国际化配置
         initI18n();
 
         // admin trigger pool start
+        // 启动触发任务线程池
         JobTriggerPoolHelper.toStart();
 
         // admin registry monitor run
+        // 启动注册监控线程
         JobRegistryHelper.getInstance().start();
 
         // admin fail-monitor run
+        // 启动失败任务监控线程
         JobFailMonitorHelper.getInstance().start();
 
         // admin lose-monitor run ( depend on JobTriggerPoolHelper )
+        // 启动丢失任务监控线程
         JobCompleteHelper.getInstance().start();
 
         // admin log report start
+        // 启动日志报告线程
         JobLogReportHelper.getInstance().start();
 
         // start-schedule  ( depend on JobTriggerPoolHelper )
+        // 启动调度线程
         JobScheduleHelper.getInstance().start();
 
         logger.info(">>>>>>>>> init xxl-job admin success.");
     }
 
-    
+
     public void destroy() throws Exception {
 
         // stop-schedule

@@ -21,7 +21,7 @@ import java.util.concurrent.*;
  */
 public class JobCompleteHelper {
 	private static Logger logger = LoggerFactory.getLogger(JobCompleteHelper.class);
-	
+
 	private static JobCompleteHelper instance = new JobCompleteHelper();
 	public static JobCompleteHelper getInstance(){
 		return instance;
@@ -35,6 +35,7 @@ public class JobCompleteHelper {
 	public void start(){
 
 		// for callback
+		// 回调线程池
 		callbackThreadPool = new ThreadPoolExecutor(
 				2,
 				20,
@@ -57,6 +58,7 @@ public class JobCompleteHelper {
 
 
 		// for monitor
+		// 监控线程
 		monitorThread = new Thread(new Runnable() {
 
 			@Override

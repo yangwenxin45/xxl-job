@@ -32,6 +32,7 @@ public class JobRegistryHelper {
 	public void start(){
 
 		// for registry or remove
+        // 注册或移除线程池
 		registryOrRemoveThreadPool = new ThreadPoolExecutor(
 				2,
 				10,
@@ -52,23 +53,27 @@ public class JobRegistryHelper {
 					}
 				});
 
-		// for monitor
+        // for monitor
+        // 注册监控线程
 		registryMonitorThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				while (!toStop) {
 					try {
-						// auto registry group
+                        // auto registry group
+                        // 获取自动注册分组
 						List<XxlJobGroup> groupList = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupDao().findByAddressType(0);
 						if (groupList!=null && !groupList.isEmpty()) {
 
-							// remove dead address (admin/executor)
+                            // remove dead address (admin/executor)
+                            // 移除死亡地址：90 秒没有心跳的地址
 							List<Integer> ids = XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().findDead(RegistryConfig.DEAD_TIMEOUT, new Date());
 							if (ids!=null && ids.size()>0) {
 								XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().removeDead(ids);
 							}
 
-							// fresh online address (admin/executor)
+                            // fresh online address (admin/executor)
+                            // 刷新在线地址
 							HashMap<String, List<String>> appAddressMap = new HashMap<String, List<String>>();
 							List<XxlJobRegistry> list = XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().findAll(RegistryConfig.DEAD_TIMEOUT, new Date());
 							if (list != null) {
@@ -88,7 +93,8 @@ public class JobRegistryHelper {
 								}
 							}
 
-							// fresh group address
+                            // fresh group address
+                            // 刷新组地址
 							for (XxlJobGroup group: groupList) {
 								List<String> registryList = appAddressMap.get(group.getAppname());
 								String addressListStr = null;
@@ -113,6 +119,7 @@ public class JobRegistryHelper {
 						}
 					}
 					try {
+                        // 心跳检测时间为 30 秒
 						TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
 					} catch (Throwable e) {
 						if (!toStop) {

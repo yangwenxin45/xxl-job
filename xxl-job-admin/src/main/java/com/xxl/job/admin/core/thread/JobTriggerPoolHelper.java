@@ -25,6 +25,7 @@ public class JobTriggerPoolHelper {
     private ThreadPoolExecutor slowTriggerPool = null;
 
     public void start(){
+        // 创建一个快触发线程池
         fastTriggerPool = new ThreadPoolExecutor(
                 10,
                 XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax(),
@@ -44,6 +45,7 @@ public class JobTriggerPoolHelper {
                     }
                 });
 
+        // 创建一个慢触发线程池
         slowTriggerPool = new ThreadPoolExecutor(
                 10,
                 XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax(),
@@ -89,8 +91,10 @@ public class JobTriggerPoolHelper {
                            final String addressList) {
 
         // choose thread pool
+        // 默认是快触发线程池
         ThreadPoolExecutor triggerPool_ = fastTriggerPool;
         AtomicInteger jobTimeoutCount = jobTimeoutCountMap.get(jobId);
+        // 一分钟内超时了 10 次就改为慢触发
         if (jobTimeoutCount!=null && jobTimeoutCount.get() > 10) {      // job-timeout 10 times in 1 min
             triggerPool_ = slowTriggerPool;
         }
@@ -104,12 +108,14 @@ public class JobTriggerPoolHelper {
 
                 try {
                     // do trigger
+                    // 触发
                     XxlJobTrigger.trigger(jobId, triggerType, failRetryCount, executorShardingParam, executorParam, addressList);
                 } catch (Throwable e) {
                     logger.error(e.getMessage(), e);
                 } finally {
 
                     // check timeout-count-map
+                    // 每分钟重置一次超时次数
                     long minTim_now = System.currentTimeMillis()/60000;
                     if (minTim != minTim_now) {
                         minTim = minTim_now;
@@ -117,6 +123,7 @@ public class JobTriggerPoolHelper {
                     }
 
                     // incr timeout-count-map
+                    // 时间超过 500ms 就算超时
                     long cost = System.currentTimeMillis()-start;
                     if (cost > 500) {       // ob-timeout threshold 500ms
                         AtomicInteger timeoutCount = jobTimeoutCountMap.putIfAbsent(jobId, new AtomicInteger(1));

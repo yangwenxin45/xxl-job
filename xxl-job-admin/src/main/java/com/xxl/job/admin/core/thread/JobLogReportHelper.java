@@ -28,6 +28,7 @@ public class JobLogReportHelper {
     private Thread logrThread;
     private volatile boolean toStop = false;
     public void start(){
+        // 日志线程
         logrThread = new Thread(new Runnable() {
 
             @Override
@@ -40,6 +41,7 @@ public class JobLogReportHelper {
                 while (!toStop) {
 
                     // 1、log-report refresh: refresh log report in 3 days
+                    // 过去三天的日志报告刷新
                     try {
 
                         for (int i = 0; i < 3; i++) {
@@ -94,6 +96,7 @@ public class JobLogReportHelper {
                     }
 
                     // 2、log-clean: switch open & once each day
+                    // 每天清理一次过期的日志
                     if (XxlJobAdminConfig.getAdminConfig().getLogretentiondays()>0
                             && System.currentTimeMillis() - lastCleanLogTime > 24*60*60*1000) {
 
