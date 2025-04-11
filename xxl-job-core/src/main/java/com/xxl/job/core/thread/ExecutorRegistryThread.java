@@ -44,6 +44,7 @@ public class ExecutorRegistryThread {
                     try {
                         RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
                         for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {
+                            // 向每一个调度中心节点发起注册执行器请求
                             try {
                                 ReturnT<String> registryResult = adminBiz.registry(registryParam);
                                 if (registryResult!=null && ReturnT.SUCCESS_CODE == registryResult.getCode()) {
@@ -77,6 +78,7 @@ public class ExecutorRegistryThread {
                 }
 
                 // registry remove
+                // 主动注销
                 try {
                     RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
                     for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {

@@ -66,7 +66,7 @@ public class JobRegistryHelper {
 						if (groupList!=null && !groupList.isEmpty()) {
 
                             // remove dead address (admin/executor)
-                            // 移除死亡地址：90 秒没有心跳的地址
+							// 被动注销：移除死亡地址，90 秒没有心跳的地址
 							List<Integer> ids = XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().findDead(RegistryConfig.DEAD_TIMEOUT, new Date());
 							if (ids!=null && ids.size()>0) {
 								XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().removeDead(ids);
@@ -163,6 +163,7 @@ public class JobRegistryHelper {
 		}
 
 		// async execute
+		// 异步执行
 		registryOrRemoveThreadPool.execute(new Runnable() {
 			@Override
 			public void run() {

@@ -132,6 +132,7 @@ public class XxlJobExecutor  {
 
 
     // ---------------------- admin-client (rpc invoker) ----------------------
+    // 调度中心节点列表
     private static List<AdminBiz> adminBizList;
     private void initAdminBizList(String adminAddresses, String accessToken, int timeout) throws Exception {
         if (adminAddresses!=null && adminAddresses.trim().length()>0) {

@@ -24,6 +24,7 @@ public class AdminBizImpl implements AdminBiz {
 
     @Override
     public ReturnT<String> registry(RegistryParam registryParam) {
+        // 调度中心实现注册
         return JobRegistryHelper.getInstance().registry(registryParam);
     }
 

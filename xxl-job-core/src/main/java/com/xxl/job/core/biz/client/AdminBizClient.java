@@ -43,6 +43,7 @@ public class AdminBizClient implements AdminBiz {
 
     @Override
     public ReturnT<String> registry(RegistryParam registryParam) {
+        // 执行器发起注册请求
         return XxlJobRemotingUtil.postBody(addressUrl + "api/registry", accessToken, timeout, registryParam, String.class);
     }
 
