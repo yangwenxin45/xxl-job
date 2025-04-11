@@ -32,12 +32,13 @@ public class JobScheduleHelper {
     private Thread ringThread;
     private volatile boolean scheduleThreadToStop = false;
     private volatile boolean ringThreadToStop = false;
+    // 时间轮，key 为秒数，value 为这一秒内有多少任务需要执行
     private volatile static Map<Integer, List<Integer>> ringData = new ConcurrentHashMap<>();
 
     public void start(){
 
         // schedule thread
-        // 调度线程
+        // 调度线程：扫描任务配置表，并判断当前任务是否应该触发
         scheduleThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -53,7 +54,7 @@ public class JobScheduleHelper {
                 logger.info(">>>>>>>>> init xxl-job admin scheduler success.");
 
                 // pre-read count: treadpool-size * trigger-qps (each trigger cost 50ms, qps = 1000/50 = 20)
-                // 预读的任务数量：快慢线程池的最大线程数总和 * 20 (每个触发花费 50ms，则一秒可以触发 20 次)
+                // 预读的任务数量：快慢线程池的最大线程数总和 * 20 (每个触发花费 50ms，则一秒可以触发 20 次)，默认值（200 + 100） * 20 = 6000
                 int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) * 20;
 
                 while (!scheduleThreadToStop) {
@@ -65,6 +66,7 @@ public class JobScheduleHelper {
                     Boolean connAutoCommit = null;
                     PreparedStatement preparedStatement = null;
 
+                    // 查询出了可调度的定时任务时为 true，反之为 false
                     boolean preReadSuc = true;
                     try {
 
@@ -88,9 +90,10 @@ public class JobScheduleHelper {
                             for (XxlJobInfo jobInfo: scheduleList) {
 
                                 // time-ring jump
+                                // 触发时机判断
                                 if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
                                     // 2.1、trigger-expire > 5s：pass && make next-trigger-time
-                                    // 触发时间超时 5 秒以上
+                                    // 触发时间已超时 5 秒以上
                                     logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
 
                                     // 1、misfire match
@@ -108,7 +111,7 @@ public class JobScheduleHelper {
 
                                 } else if (nowTime > jobInfo.getTriggerNextTime()) {
                                     // 2.2、trigger-expire < 5s：direct-trigger && make next-trigger-time
-                                    // 触发时间超时 5 秒以内
+                                    // 触发时间已超时但不足 5 秒
 
                                     // 1、trigger
                                     // 立即触发
@@ -220,6 +223,7 @@ public class JobScheduleHelper {
                         try {
                             // pre-read period: success > scan each second; fail > skip this period;
                             // 如果成功预读了数据，则等待 0~1 秒，否则等待 4~5 秒
+                            // System.currentTimeMillis()%1000：让不同节点的睡眠时间分散，避免集中触发
                             TimeUnit.MILLISECONDS.sleep((preReadSuc?1000:PRE_READ_MS) - System.currentTimeMillis()%1000);
                         } catch (Throwable e) {
                             if (!scheduleThreadToStop) {

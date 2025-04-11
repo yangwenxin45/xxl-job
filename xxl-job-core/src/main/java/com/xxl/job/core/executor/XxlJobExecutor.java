@@ -193,6 +193,7 @@ public class XxlJobExecutor  {
 
 
     // ---------------------- job handler repository ----------------------
+    // key 为 @XxlJob 注解中的 value，value 为 MethodJobHandler
     private static ConcurrentMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<String, IJobHandler>();
     public static IJobHandler loadJobHandler(String name){
         return jobHandlerRepository.get(name);
@@ -257,6 +258,7 @@ public class XxlJobExecutor  {
 
 
     // ---------------------- job thread repository ----------------------
+    // key 为 jobId， value 为 JobThread
     private static ConcurrentMap<Integer, JobThread> jobThreadRepository = new ConcurrentHashMap<Integer, JobThread>();
     public static JobThread registJobThread(int jobId, IJobHandler handler, String removeOldReason){
         JobThread newJobThread = new JobThread(jobId, handler);

@@ -20,7 +20,15 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 
-// 任务线程
+/**
+ * 任务线程
+ * 给每一个任务处理器分配了一个单独的线程进行处理，保证任务之间是隔离的
+ * jobThread 不是执行器初始化的时候创建的，而是在执行器接收到调度请求时，判断当前 jobId 有没有已经生成的 jobThread，
+ * 如果没有则会创建一个放入 ConcurrentMap 中
+ *
+ * @author yangwenxin
+ * @date 2025-04-11 12:10
+ */
 /**
  * handler thread
  * @author xuxueli 2016-1-16 19:52:47

@@ -21,6 +21,7 @@ public class JobTriggerPoolHelper {
     // ---------------------- trigger pool ----------------------
 
     // fast/slow thread pool
+    // 快慢两个线程池是为了做一个线程池的隔离，避免执行较慢的任务占用过多资源，影响到了其他正常任务的调度
     private ThreadPoolExecutor fastTriggerPool = null;
     private ThreadPoolExecutor slowTriggerPool = null;
 
@@ -77,6 +78,7 @@ public class JobTriggerPoolHelper {
 
     // job timeout count
     private volatile long minTim = System.currentTimeMillis()/60000;     // ms > min
+    // 计数器，key 为 jobId，value 为超时次数，当任务触发时间超过 500 ms 时，超时次数 +1，同一任务在一分钟内超时超过了 10 次，这个任务就会被定义为慢任务
     private volatile ConcurrentMap<Integer, AtomicInteger> jobTimeoutCountMap = new ConcurrentHashMap<>();
 
 
